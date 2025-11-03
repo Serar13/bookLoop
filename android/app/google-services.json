@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "675688586909",
+    "project_id": "bookloop-1a79c",
+    "storage_bucket": "bookloop-1a79c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675688586909:android:50bc3b20dcadbda2577e74",
+        "android_client_info": {
+          "package_name": "com.example.bookLoop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMwjaLzqwyRrFBOYf7Z0tKFrlSI2IhVpQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

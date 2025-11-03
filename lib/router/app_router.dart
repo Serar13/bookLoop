@@ -1,0 +1,92 @@
+import 'package:book_loop/router/app_routes.dart';
+import 'package:book_loop/screens/home_screen.dart';
+import 'package:book_loop/screens/onBoarding_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../blocs/authentication/authentication_bloc.dart';
+import '../repositories/authentication_repository.dart';
+import '../screens/register.dart';
+import '../screens/splash_screen.dart';
+
+const String loginPath = "/login";
+const String singinPath = "/singin";
+const String homePath = "/home";
+const String aboutPath = "/about";
+const String userProfilePath = "/userProfile";
+const String forgotPasswordPagePath = "/forgotPasswordPage";
+const String waitingVerificationPath = "/waitingVerification";
+const String waitingVerificationEditPath = "/waitingVerificationEdit";
+const String editProfilePath = "/editProfile";
+const String splashPath = "/splash";
+const String onBordingPath = "/onBording";
+const String createProfilePath = "/createProfile";
+const String welcomePath = "/welcome";
+const String adminPath = "/admin";
+const String adminConsolePath = "/adminConsole";
+
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+GlobalKey<NavigatorState>(debugLabel: 'shell');
+
+class AppRouter {
+  final GoRouter router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: splashPath,
+    debugLogDiagnostics: true,
+    routes: [
+      GoRoute(
+        name: AppRoutes.splashRoute,
+        path: splashPath,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: SplashScreen(),
+        ),
+      ),
+      GoRoute(
+        name: AppRoutes.onBordingRoute,
+        path: onBordingPath,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: OnboardingScreen(),
+          transitionDuration: const Duration(milliseconds: 600), // Animation duration
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation, // Gradually increase the opacity
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        name: AppRoutes.singinRoute,
+        path: singinPath,
+        builder: (context, state) {
+          return BlocProvider(
+            create: (context) => AuthenticationBloc(
+              authenticationRepository: context.read<AuthenticationRepository>(),
+            ),
+            child: RegisterScreen(),
+          );
+        },
+      ),
+      /* GoRoute(
+        name: AppRoutes.createProfileRoute,
+        path: createProfilePath,
+        builder: (context, state) {
+          return BlocProvider(
+            create: (context) => CreateProfileBloc(),
+            child: const CreateProfileScreen(),
+          );
+        },
+      ),*/
+      GoRoute(
+        name: AppRoutes.homeRoute,
+        path: homePath,
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: HomeScreen(),
+        ),
+      ),
+    ],
+  );
+}
