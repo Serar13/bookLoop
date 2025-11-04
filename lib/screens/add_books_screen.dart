@@ -5,6 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class AddBooksScreen extends StatefulWidget {
   const AddBooksScreen({super.key});
@@ -15,26 +18,24 @@ class AddBooksScreen extends StatefulWidget {
 
 class _BookEntryForm {
   _BookEntryForm()
-      : imageController = TextEditingController(),
-        titleController = TextEditingController(),
+      : titleController = TextEditingController(),
         authorController = TextEditingController();
 
-  final TextEditingController imageController;
   final TextEditingController titleController;
   final TextEditingController authorController;
-  bool availableForTrade = true;
+  File? imageFile;
 
   void dispose() {
-    imageController.dispose();
     titleController.dispose();
     authorController.dispose();
+    // No need to delete imageFile, just dereference.
   }
 
   void clear() {
-    imageController.clear();
     titleController.clear();
     authorController.clear();
-    availableForTrade = true;
+    // Optionally, also clear imageFile if needed.
+    // imageFile = null;
   }
 }
 
@@ -98,14 +99,11 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
       for (final entry in _bookEntries) {
         final title = entry.titleController.text.trim();
         final author = entry.authorController.text.trim();
-        final imageUrl = entry.imageController.text.trim();
 
         await context.read<AuthenticationRepository>().addBook(
           uid: user.uid,
           title: title,
           author: author,
-          imageUrl: imageUrl.isEmpty ? null : imageUrl,
-          availableForTrade: entry.availableForTrade,
         );
       }
 
@@ -199,11 +197,6 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
                   onRemove: _bookEntries.length > 1
                       ? () => _removeBookEntry(index)
                       : null,
-                  onAvailabilityChanged: (value) {
-                    setState(() {
-                      entry.availableForTrade = value;
-                    });
-                  },
                 ),
               );
             }),
@@ -250,18 +243,114 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
   }
 }
 
-class _BookEntryCard extends StatelessWidget {
+class _BookEntryCard extends StatefulWidget {
   const _BookEntryCard({
     required this.entry,
     required this.index,
-    required this.onAvailabilityChanged,
     this.onRemove,
   });
 
   final _BookEntryForm entry;
   final int index;
   final VoidCallback? onRemove;
-  final ValueChanged<bool> onAvailabilityChanged;
+
+  @override
+  State<_BookEntryCard> createState() => _BookEntryCardState();
+}
+
+class _BookEntryCardState extends State<_BookEntryCard> {
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _extractBookInfo(File imageFile) async {
+    try {
+      print('DEBUG: Starting OCR extraction for file: ${imageFile.path}');
+
+      final inputImage = InputImage.fromFile(imageFile);
+      final textRecognizer = TextRecognizer();
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+
+      print('DEBUG: OCR raw text:\n${recognizedText.text}');
+
+      final text = recognizedText.text;
+      final lines = text.split('\n').where((l) => l.trim().isNotEmpty).toList();
+
+      print('DEBUG: Lines detected: ${lines.length}');
+      for (var i = 0; i < lines.length; i++) {
+        print('DEBUG: Line $i => "${lines[i]}"');
+      }
+
+      if (lines.isNotEmpty) {
+        setState(() {
+          widget.entry.titleController.text = lines.first;
+          if (lines.length > 1) {
+            widget.entry.authorController.text = lines.last;
+          }
+        });
+        print('DEBUG: Assigned title="${widget.entry.titleController.text}", author="${widget.entry.authorController.text}"');
+      } else {
+        print('DEBUG: No text lines detected.');
+      }
+
+      await textRecognizer.close();
+      print('DEBUG: TextRecognizer closed.');
+    } catch (e, stack) {
+      print('ERROR: Exception during OCR extraction: $e');
+      print(stack);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    print('DEBUG: Cover tapped');
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a photo'),
+                onTap: () async {
+                  final picked = await _picker.pickImage(source: ImageSource.camera);
+                  if (picked != null) {
+                    print('DEBUG: Camera image picked: ${picked.path}');
+                    setState(() {
+                      widget.entry.imageFile = File(picked.path);
+                    });
+                    print('DEBUG: Calling _extractBookInfo...');
+                    await _extractBookInfo(File(picked.path));
+                  }
+                  if (mounted) {
+                    Future.microtask(() => Navigator.pop(context));
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from gallery'),
+                onTap: () async {
+                  final picked = await _picker.pickImage(source: ImageSource.gallery);
+                  if (picked != null) {
+                    print('DEBUG: Gallery image picked: ${picked.path}');
+                    setState(() {
+                      widget.entry.imageFile = File(picked.path);
+                    });
+                    print('DEBUG: Calling _extractBookInfo...');
+                    await _extractBookInfo(File(picked.path));
+                  }
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -279,21 +368,68 @@ class _BookEntryCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          InkWell(
+            onTap: _pickImage,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 120,
+              height: 180,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7F7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: widget.entry.imageFile != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        widget.entry.imageFile!,
+                        width: 120,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text(
+                            'Tap to add cover',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Text(
-                'Book #${index + 1}',
+                'Book #${widget.index + 1}',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
-              if (onRemove != null)
+              if (widget.onRemove != null)
                 IconButton(
-                  onPressed: onRemove,
+                  onPressed: widget.onRemove,
                   icon: const Icon(Icons.close_rounded),
                   tooltip: 'Remove book',
                 ),
@@ -301,33 +437,17 @@ class _BookEntryCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _StyledTextField(
-            controller: entry.imageController,
-            hintText: 'Cover image URL',
-            prefixIcon: Icons.image_outlined,
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: 16),
-          _StyledTextField(
-            controller: entry.titleController,
+            controller: widget.entry.titleController,
             hintText: 'Book title',
             prefixIcon: Icons.title,
             textInputAction: TextInputAction.next,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _StyledTextField(
-            controller: entry.authorController,
+            controller: widget.entry.authorController,
             hintText: 'Author name',
             prefixIcon: Icons.person_outline,
             textInputAction: TextInputAction.done,
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile.adaptive(
-            value: entry.availableForTrade,
-            activeColor: Colors.black,
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Available for trade'),
-            subtitle: const Text('Turn off if you want to keep it private for now'),
-            onChanged: onAvailabilityChanged,
           ),
         ],
       ),

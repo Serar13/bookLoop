@@ -18,6 +18,7 @@
         "flutter_bloc",
         "flutter_launcher_icons",
         "go_router",
+        "google_mlkit_text_recognition",
         "image_picker",
         "permission_handler",
         "supabase_flutter",
@@ -105,6 +106,14 @@
       "name": "cupertino_icons",
       "version": "1.0.8",
       "dependencies": []
+    },
+    {
+      "name": "google_mlkit_text_recognition",
+      "version": "0.11.0",
+      "dependencies": [
+        "flutter",
+        "google_mlkit_commons"
+      ]
     },
     {
       "name": "supabase_flutter",
@@ -1225,6 +1234,13 @@
       "version": "1.0.1",
       "dependencies": [
         "web"
+      ]
+    },
+    {
+      "name": "google_mlkit_commons",
+      "version": "0.6.1",
+      "dependencies": [
+        "flutter"
       ]
     }
   ],

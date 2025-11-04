@@ -50,6 +50,18 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 18, color: Colors.white),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.black,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add Book',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          GoRouter.of(context).go(addBooksPath); // Navighează spre Add Books
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

@@ -41,8 +41,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 🔹 1. Creează contul în Supabase
-      final response = await Supabase.instance.client.auth.signUp(
+      final supabase = Supabase.instance.client;
+
+      // 🔹 1. Încearcă să creezi contul
+      final response = await supabase.auth.signUp(
         email: email,
         password: password,
         data: {
@@ -51,19 +53,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
         },
       );
 
-      final user = response.user;
-      if (user == null) {
-        throw Exception('Failed to register. Please try again.');
+      var user = response.user;
+
+      // 🔹 2. Dacă nu există sesiune activă, conectează-l imediat
+      if (supabase.auth.currentSession == null || user == null) {
+        final signInResp = await supabase.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+        user = signInResp.user;
       }
 
-      // 🔹 2. Creează rândul inițial în tabela "profiles"
-      await Supabase.instance.client.from('profiles').upsert({
+      if (user == null) {
+        throw Exception('Failed to register or sign in user.');
+      }
+
+      // 🔹 3. Creează profilul de bază
+      await supabase.from('profiles').upsert({
         'id': user.id,
         'email': email,
         'name': name,
         'phone': phone,
         'created_at': DateTime.now().toIso8601String(),
       });
+
+      // 🔹 4. Verificăm dacă userul e într-adevăr logat
+      final activeUser = supabase.auth.currentUser;
+      if (activeUser == null) {
+        throw Exception('No active session found after sign up.');
+      }
 
       if (mounted) {
         GoRouter.of(context).go(createProfilePath);
