@@ -266,7 +266,9 @@ class _BookEntryCardState extends State<_BookEntryCard> {
       print('DEBUG: Starting OCR extraction for file: ${imageFile.path}');
 
       final inputImage = InputImage.fromFile(imageFile);
-      final textRecognizer = TextRecognizer();
+      final textRecognizer = TextRecognizer(
+        script: TextRecognitionScript.latin,
+      );
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
       print('DEBUG: OCR raw text:\n${recognizedText.text}');
