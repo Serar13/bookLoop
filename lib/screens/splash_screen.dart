@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,11 +37,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Navigare după 5 secunde
     Future.delayed(const Duration(seconds: 5), () {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
-        GoRouter.of(context).go(addBooksPath);
+        GoRouter.of(context).go(createProfilePath);
       } else {
-        GoRouter.of(context).go(onBordingPath);
+        GoRouter.of(context).go(createProfilePath);
       }
     });
   }

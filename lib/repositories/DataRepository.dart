@@ -1,12 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
-
-
 import 'authentication_repository.dart';
 
-final FirebaseFirestore _db = FirebaseFirestore.instance;
-
 final _uuid = const Uuid();
+final supabase = Supabase.instance.client;
 
 extension UserData on AuthenticationRepository {
   Future<String> addBook({
@@ -17,18 +14,13 @@ extension UserData on AuthenticationRepository {
     bool availableForTrade = true,
   }) async {
     final id = _uuid.v4();
-    final now = FieldValue.serverTimestamp();
-    await _db
-        .collection('users')
-        .doc(uid)
-        .collection('books')
-        .doc(id)
-        .set({
+    await supabase.from('books').insert({
+      'id': id,
+      'user_id': uid,
       'title': title,
       'author': author,
-      'imageUrl': imageUrl,
-      'availableForTrade': availableForTrade,
-      'createdAt': now,
+      'cover_url': imageUrl,
+      'created_at': DateTime.now().toIso8601String(),
     });
     return id;
   }
@@ -39,13 +31,13 @@ extension UserData on AuthenticationRepository {
     required String bookId,
   }) async {
     final id = _uuid.v4();
-    final now = FieldValue.serverTimestamp();
-    await _db.collection('requests').doc(id).set({
+    await supabase.from('requests').insert({
+      'id': id,
       'fromUserId': fromUserId,
       'toUserId': toUserId,
       'bookId': bookId,
       'status': 'pending',
-      'createdAt': now,
+      'created_at': DateTime.now().toIso8601String(),
     });
     return id;
   }

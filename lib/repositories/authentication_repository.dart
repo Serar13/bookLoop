@@ -22,7 +22,7 @@ class AuthenticationRepository {
       throw Exception('Failed to create account');
     }
 
-    await _client.from('users').insert({
+    await _client.from('profiles').insert({
       'id': response.user!.id,
       'name': name,
       'email': email,
@@ -30,6 +30,7 @@ class AuthenticationRepository {
       'photo_url': null,
       'city': null,
       'bio': null,
+      'gender': null,
       'created_at': DateTime.now().toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
     });

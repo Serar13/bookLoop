@@ -99,13 +99,22 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   Future<void> _saveProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+    print('DEBUG: _saveProfile() called');
+
+    if (user == null) {
+      print('DEBUG: No user found');
+      return;
+    }
 
     final uid = user.id;
     final city = _cityController.text.trim();
     final bio = _bioController.text.trim();
 
+    print('DEBUG: Saving profile for user: $uid, city: $city, bio: $bio');
+    print('DEBUG: Image: $_image, existingPhotoUrl: $_existingPhotoUrl');
+
     if ((_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty)) || city.isEmpty || bio.isEmpty) {
+      print('DEBUG: Missing fields');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all fields')),
       );
@@ -118,20 +127,16 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       String? photoUrl = _existingPhotoUrl;
 
       if (_image != null) {
-        try {
-          final fileName = 'users/$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          final bytes = await _image!.readAsBytes();
-          await Supabase.instance.client.storage
-              .from('bookloop-images')
-              .uploadBinary(fileName, bytes, fileOptions: const FileOptions(upsert: true));
-          photoUrl = Supabase.instance.client.storage
-              .from('bookloop-images')
-              .getPublicUrl(fileName);
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')),
-          );
-        }
+        print('DEBUG: Uploading image...');
+        final fileName = 'users/$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final bytes = await _image!.readAsBytes();
+        await Supabase.instance.client.storage
+            .from('bookloop-images')
+            .uploadBinary(fileName, bytes, fileOptions: const FileOptions(upsert: true));
+        photoUrl = Supabase.instance.client.storage
+            .from('bookloop-images')
+            .getPublicUrl(fileName);
+        print('DEBUG: Image uploaded: $photoUrl');
       }
 
       final data = {
@@ -141,12 +146,17 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      await Supabase.instance.client
-          .from('users')
+      print('DEBUG: Updating Supabase with data: $data');
+
+      final response = await Supabase.instance.client
+          .from('profiles')
           .update(data)
           .eq('id', uid);
 
+      print('DEBUG: Supabase update response: $response');
+
       if (context.mounted) {
+        print('DEBUG: Showing Add Books dialog');
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -172,6 +182,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         );
       }
     } catch (e) {
+      print('DEBUG: Error saving profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving profile: $e')),
       );
