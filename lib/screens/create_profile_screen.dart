@@ -31,7 +31,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     if (user == null) return;
 
     final response = await Supabase.instance.client
-        .from('users')
+        .from('profiles')
         .select()
         .eq('id', user.id)
         .single();

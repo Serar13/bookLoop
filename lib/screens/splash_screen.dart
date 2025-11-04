@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (user != null) {
         GoRouter.of(context).go(createProfilePath);
       } else {
-        GoRouter.of(context).go(createProfilePath);
+        GoRouter.of(context).go(onBordingPath);
       }
     });
   }
