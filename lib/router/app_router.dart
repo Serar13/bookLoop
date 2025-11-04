@@ -10,6 +10,7 @@ import '../screens/login.dart';
 import '../repositories/authentication_repository.dart';
 import '../screens/register.dart';
 import '../screens/splash_screen.dart';
+import 'package:book_loop/screens/add_books_screen.dart';
 
 const String loginPath = "/login";
 const String singinPath = "/singin";
@@ -23,6 +24,7 @@ const String editProfilePath = "/editProfile";
 const String splashPath = "/splash";
 const String onBordingPath = "/onBording";
 const String createProfilePath = "/createProfile";
+const String addBooksPath = "/addBooks";
 const String welcomePath = "/welcome";
 const String adminPath = "/admin";
 const String adminConsolePath = "/adminConsole";
@@ -115,6 +117,21 @@ class AppRouter {
         path: homePath,
         pageBuilder: (context, state) => const NoTransitionPage(
           child: HomeScreen(),
+        ),
+      ),
+      GoRoute(
+        name: AppRoutes.addBooksRoute,
+        path: addBooksPath,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AddBooksScreen(),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
         ),
       ),
     ],

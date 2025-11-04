@@ -38,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 5), () {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        GoRouter.of(context).go(homePath);
+        GoRouter.of(context).go(addBooksPath);
       } else {
         GoRouter.of(context).go(onBordingPath);
       }

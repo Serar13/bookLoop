@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyBY9fzMi7KiR7DXWyc040WJrFWFH8j_fFM</string>
+	<string>AIzaSyAdiyx_lvzPqZXISmNEDo1eTqg4crac3KM</string>
 	<key>GCM_SENDER_ID</key>
-	<string>675688586909</string>
+	<string>265098319933</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.exemple.bookLoop</string>
 	<key>PROJECT_ID</key>
-	<string>bookloop-1a79c</string>
+	<string>bookloop-5a7b7</string>
 	<key>STORAGE_BUCKET</key>
-	<string>bookloop-1a79c.firebasestorage.app</string>
+	<string>bookloop-5a7b7.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:675688586909:ios:291d279558a161c2577e74</string>
+	<string>1:265098319933:ios:7ab466cac7043d67957254</string>
 </dict>
 </plist>

@@ -4,12 +4,13 @@ import 'package:book_loop/blocs/authentication/authentication_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Supabase.initialize(
+      url: 'https://YOUR-PROJECT-URL.supabase.co',
+      anonKey: 'YOUR-ANON-KEY',
   );
 
   // Initialize AuthenticationRepository

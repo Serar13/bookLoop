@@ -1,9 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthenticationRepository {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final SupabaseClient _client = Supabase.instance.client;
 
   Future<void> signUp({
     required String email,
@@ -11,34 +9,47 @@ class AuthenticationRepository {
     required String name,
     required String phone,
   }) async {
-    // 1) Creează contul
-    final cred = await _auth.createUserWithEmailAndPassword(
+    final response = await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: {
+        'name': name,
+        'phone': phone,
+      },
+    );
+
+    if (response.user == null) {
+      throw Exception('Failed to create account');
+    }
+
+    await _client.from('users').insert({
+      'id': response.user!.id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'photo_url': null,
+      'city': null,
+      'bio': null,
+      'created_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> logIn({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.auth.signInWithPassword(
       email: email,
       password: password,
     );
 
-    final uid = cred.user!.uid;
-
-    // 2) Creează profilul în Firestore
-    final now = FieldValue.serverTimestamp();
-    await _db.collection('users').doc(uid).set({
-      'name': name,
-      'email': email,
-      'phone': phone,
-      'photoUrl': null,
-      'city': null,
-      'bio': null,
-      'createdAt': now,
-      'updatedAt': now,
-    });
-  }
-
-  Future<void> logIn({required String email, required String password}) async {
-    await _auth.signInWithEmailAndPassword(email: email, password: password);
+    if (response.user == null) {
+      throw Exception('Invalid credentials');
+    }
   }
 
   Future<void> logOut() async {
-    await _auth.signOut();
+    await _client.auth.signOut();
   }
 }
-

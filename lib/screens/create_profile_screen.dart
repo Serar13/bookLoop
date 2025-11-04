@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:book_loop/repositories/authentication_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:book_loop/router/app_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class CreateProfileScreen extends StatefulWidget {
   const CreateProfileScreen({super.key});
@@ -19,90 +17,95 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   File? _image;
+  String? _existingPhotoUrl;
   bool _isLoading = false;
 
-  Future<void> _pickImage() async {
-    try {
-      final cameraStatus = await Permission.camera.request();
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingProfile();
+  }
 
-      // 🔹 iOS are acces limitat la Photo Library — cerem AddOnly dacă e iOS
-      final photosStatus = Platform.isIOS
-          ? await Permission.photosAddOnly.request()
-          : await Permission.photos.request();
+  Future<void> _loadExistingProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
 
-      if (cameraStatus.isPermanentlyDenied || photosStatus.isPermanentlyDenied) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Permission required'),
-            content: const Text('Please allow camera and photo access in Settings.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  openAppSettings();
-                },
-                child: const Text('Open Settings'),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
+    final response = await Supabase.instance.client
+        .from('users')
+        .select()
+        .eq('id', user.id)
+        .single();
 
-      if (!cameraStatus.isGranted || !photosStatus.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera or gallery access denied')),
-        );
-        return;
-      }
-
-      // 🔹 Alegerea sursei de imagine
-      final source = await showModalBottomSheet<ImageSource>(
-        context: context,
-        builder: (context) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a photo'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      if (source != null) {
-        final picked = await ImagePicker().pickImage(source: source);
-        if (picked != null) {
-          setState(() => _image = File(picked.path));
-        }
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
-      );
+    if (response != null) {
+      setState(() {
+        _cityController.text = response['city'] ?? '';
+        _bioController.text = response['bio'] ?? '';
+        _existingPhotoUrl = response['photo_url'];
+      });
     }
   }
 
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () async {
+                Navigator.pop(context);
+                try {
+                  final picked = await ImagePicker().pickImage(source: ImageSource.camera);
+                  if (picked != null) {
+                    setState(() {
+                      _image = File(picked.path);
+                      _existingPhotoUrl = null;
+                    });
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to pick image: $e')),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () async {
+                Navigator.pop(context);
+                try {
+                  final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                  if (picked != null) {
+                    setState(() {
+                      _image = File(picked.path);
+                      _existingPhotoUrl = null;
+                    });
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to pick image: $e')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
 
-    final uid = user.uid;
+    final uid = user.id;
     final city = _cityController.text.trim();
     final bio = _bioController.text.trim();
 
-    print('Saving profile for: $uid, city: $city, bio: $bio, image: $_image');
-
-    if (_image == null || city.isEmpty || bio.isEmpty) {
+    if ((_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty)) || city.isEmpty || bio.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all fields')),
       );
@@ -112,29 +115,36 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      String? photoUrl;
-      try {
-        // Upload image
-        final ref = FirebaseStorage.instance.ref().child('users/$uid/profile.jpg');
-        await ref.putFile(_image!);
-        photoUrl = await ref.getDownloadURL();
-      } catch (e) {
-        // Handle upload failure but continue to update profile without photoUrl
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload image: $e')),
-        );
+      String? photoUrl = _existingPhotoUrl;
+
+      if (_image != null) {
+        try {
+          final fileName = 'users/$uid/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final bytes = await _image!.readAsBytes();
+          await Supabase.instance.client.storage
+              .from('bookloop-images')
+              .uploadBinary(fileName, bytes, fileOptions: const FileOptions(upsert: true));
+          photoUrl = Supabase.instance.client.storage
+              .from('bookloop-images')
+              .getPublicUrl(fileName);
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to upload image: $e')),
+          );
+        }
       }
 
-      // Update Firestore
       final data = {
         'city': city,
         'bio': bio,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'photo_url': photoUrl,
+        'updated_at': DateTime.now().toIso8601String(),
       };
-      if (photoUrl != null) {
-        data['photoUrl'] = photoUrl;
-      }
-      await FirebaseFirestore.instance.collection('users').doc(uid).set(data, SetOptions(merge: true));
+
+      await Supabase.instance.client
+          .from('users')
+          .update(data)
+          .eq('id', uid);
 
       if (context.mounted) {
         await showDialog(
@@ -153,7 +163,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  GoRouter.of(context).go('/addBooks');
+                  GoRouter.of(context).go(addBooksPath);
                 },
                 child: const Text('Add Now'),
               ),
@@ -200,10 +210,11 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 onTap: _pickImage,
                 child: CircleAvatar(
                   radius: 60,
-                  backgroundImage:
-                  _image != null ? FileImage(_image!) : null,
+                  backgroundImage: _image != null
+                      ? FileImage(_image!)
+                      : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider<Object>?,
                   backgroundColor: Colors.white,
-                  child: _image == null
+                  child: (_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty))
                       ? const Icon(Icons.camera_alt, size: 40, color: Colors.grey)
                       : null,
                 ),
