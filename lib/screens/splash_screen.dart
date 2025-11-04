@@ -14,18 +14,27 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool showText = false;
+  bool moveLeft = false;
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
+    // După 2 secunde — mutăm logo-ul puțin spre stânga
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
-        showText = true;
+        moveLeft = true;
+      });
+      // După ce logo-ul s-a oprit, apare textul
+      Future.delayed(const Duration(milliseconds: 700), () {
+        setState(() {
+          showText = true;
+        });
       });
     });
 
+    // Navigare după 5 secunde
     Future.delayed(const Duration(seconds: 5), () {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -48,39 +57,43 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Stack(
+        alignment: Alignment.center,
         children: [
-          Center(
-            child: AnimatedAlign(
-              alignment: showText ? Alignment.center : Alignment.center,
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeInOut,
-              child: Container(
-                width: 240,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/iconWithOutBackgroud.png',
-                      width: 80,
-                      height: 80,
+          // Logo inițial – centrat complet
+          AnimatedAlign(
+            alignment: moveLeft
+                ? const Alignment(-0.60, 0.0)
+                : Alignment.center,
+            duration: const Duration(milliseconds: 1200),
+            curve: Curves.easeInOut,
+            child: Image.asset(
+              'assets/iconWithOutBackgroud.png',
+              width: 100,
+              height: 100,
+            ),
+          ),
+
+          // Textul „bookLoop” – apare doar după ce logo-ul s-a mutat
+          AnimatedOpacity(
+            opacity: showText ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeInOut,
+            child: Align(
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 70), // puțin spațiu după logo
+                  const Text(
+                    "bookLoop",
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      letterSpacing: 1.2,
                     ),
-                    AnimatedOpacity(
-                      opacity: showText ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 600),
-                      child: const Padding(
-                        padding: EdgeInsets.only(left: 12.0),
-                        child: Text(
-                          "bookLoop",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

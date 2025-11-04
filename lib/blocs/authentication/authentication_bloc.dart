@@ -16,12 +16,16 @@ class AuthenticationBloc
   }
 
   void _onSignUpRequested(
-      SignUpRequested event, Emitter<AuthenticationState> emit) async {
+      SignUpRequested event,
+      Emitter<AuthenticationState> emit,
+      ) async {
     emit(AuthenticationLoading());
     try {
       await _authenticationRepository.signUp(
         email: event.email,
         password: event.password,
+        name: event.name,
+        phone: event.phone,
       );
       emit(AuthenticationAuthenticated());
     } catch (e) {

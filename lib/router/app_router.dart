@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../blocs/authentication/authentication_bloc.dart';
+import '../screens/create_profile_screen.dart';
+import '../screens/login.dart';
 import '../repositories/authentication_repository.dart';
 import '../screens/register.dart';
 import '../screens/splash_screen.dart';
@@ -61,25 +63,53 @@ class AppRouter {
       GoRoute(
         name: AppRoutes.singinRoute,
         path: singinPath,
-        builder: (context, state) {
-          return BlocProvider(
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: BlocProvider(
             create: (context) => AuthenticationBloc(
               authenticationRepository: context.read<AuthenticationRepository>(),
             ),
             child: RegisterScreen(),
-          );
-        },
+          ),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
       ),
-      /* GoRoute(
+      GoRoute(
+        name: AppRoutes.loginRoute,
+        path: loginPath,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const LoginScreen(),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
         name: AppRoutes.createProfileRoute,
         path: createProfilePath,
-        builder: (context, state) {
-          return BlocProvider(
-            create: (context) => CreateProfileBloc(),
-            child: const CreateProfileScreen(),
-          );
-        },
-      ),*/
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const CreateProfileScreen(),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
+      ),
       GoRoute(
         name: AppRoutes.homeRoute,
         path: homePath,
