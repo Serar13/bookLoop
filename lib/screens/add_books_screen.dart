@@ -272,24 +272,69 @@ class _BookEntryCardState extends State<_BookEntryCard> {
       print('DEBUG: OCR raw text:\n${recognizedText.text}');
 
       final text = recognizedText.text;
-      final lines = text.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      final lines = text
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
 
       print('DEBUG: Lines detected: ${lines.length}');
       for (var i = 0; i < lines.length; i++) {
         print('DEBUG: Line $i => "${lines[i]}"');
       }
 
-      if (lines.isNotEmpty) {
-        setState(() {
-          widget.entry.titleController.text = lines.first;
-          if (lines.length > 1) {
-            widget.entry.authorController.text = lines.last;
+      String? detectedTitle;
+      String? detectedAuthor;
+
+      // Try to detect explicit author cues such as "by" or "author".
+      for (final line in lines) {
+        final lower = line.toLowerCase();
+
+        if (detectedAuthor == null &&
+            (lower.startsWith('by ') || lower.startsWith('by:'))) {
+          final parts = line.split(RegExp(r'by[:]?\s*', caseSensitive: false));
+          if (parts.length > 1) {
+            detectedAuthor = parts.sublist(1).join(' ').trim();
           }
-        });
-        print('DEBUG: Assigned title="${widget.entry.titleController.text}", author="${widget.entry.authorController.text}"');
-      } else {
-        print('DEBUG: No text lines detected.');
+          continue;
+        }
+
+        if (detectedAuthor == null &&
+            (lower.startsWith('author ') || lower.startsWith('author:'))) {
+          final parts =
+              line.split(RegExp(r'author[:]?\s*', caseSensitive: false));
+          if (parts.length > 1) {
+            detectedAuthor = parts.sublist(1).join(' ').trim();
+          } else {
+            detectedAuthor = '';
+          }
+          continue;
+        }
+
+        if (detectedAuthor == null && lower.contains(' by ')) {
+          final parts = line.split(RegExp(r'\bby\b', caseSensitive: false));
+          if (parts.length >= 2) {
+            detectedTitle ??= parts.first.trim();
+            detectedAuthor = parts.last.trim();
+            continue;
+          }
+        }
+
+        detectedTitle ??= line;
       }
+
+      detectedTitle ??= lines.isNotEmpty ? lines.first : '';
+      if (detectedAuthor == null && lines.length > 1) {
+        detectedAuthor = lines[1];
+      }
+
+      setState(() {
+        widget.entry.titleController.text = detectedTitle ?? '';
+        widget.entry.authorController.text = detectedAuthor ?? '';
+      });
+
+      print(
+          'DEBUG: Assigned title="${widget.entry.titleController.text}", author="${widget.entry.authorController.text}"');
 
       await textRecognizer.close();
       print('DEBUG: TextRecognizer closed.');
