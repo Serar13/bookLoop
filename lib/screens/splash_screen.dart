@@ -65,7 +65,8 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       }
 
-      final hasCompletedProfile = profile != null &&
+      final hasProfile = profile != null;
+      final hasCompletedProfile = hasProfile &&
           _isFieldFilled(profile['city']) &&
           _isFieldFilled(profile['bio']) &&
           _isFieldFilled(profile['photo_url']);
@@ -75,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if (hasCompletedProfile) {
         GoRouter.of(context).go(homePath);
       } else {
-        GoRouter.of(context).go(onBordingPath);
+        GoRouter.of(context).go(createProfilePath);
       }
     } catch (_) {
       if (!mounted) return;
