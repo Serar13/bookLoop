@@ -1,13 +1,12 @@
 import 'package:book_loop/repositories/authentication_repository.dart';
 import 'package:book_loop/router/app_router.dart';
 import 'package:book_loop/repositories/DataRepository.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddBooksScreen extends StatefulWidget {
   const AddBooksScreen({super.key});
@@ -66,7 +65,7 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
   }
 
   Future<void> _saveBooks() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You need to be logged in to add a book.')),
@@ -100,10 +99,18 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
         final title = entry.titleController.text.trim();
         final author = entry.authorController.text.trim();
 
+        String? coverUrl;
+        if (entry.imageFile != null) {
+          final fileName = '${user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          await Supabase.instance.client.storage.from('bookloop-images').upload(fileName, entry.imageFile!);
+          coverUrl = Supabase.instance.client.storage.from('bookloop-images').getPublicUrl(fileName);
+        }
+
         await context.read<AuthenticationRepository>().addBook(
-          uid: user.uid,
+          uid: user.id,
           title: title,
           author: author,
+          coverUrl: coverUrl,
         );
       }
 
@@ -261,93 +268,7 @@ class _BookEntryCard extends StatefulWidget {
 class _BookEntryCardState extends State<_BookEntryCard> {
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _extractBookInfo(File imageFile) async {
-    try {
-      print('DEBUG: Starting OCR extraction for file: ${imageFile.path}');
-
-      final inputImage = InputImage.fromFile(imageFile);
-      final textRecognizer = TextRecognizer(
-        script: TextRecognitionScript.latin,
-      );
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-      print('DEBUG: OCR raw text:\n${recognizedText.text}');
-
-      final text = recognizedText.text;
-      final lines = text
-          .split('\n')
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .toList();
-
-      print('DEBUG: Lines detected: ${lines.length}');
-      for (var i = 0; i < lines.length; i++) {
-        print('DEBUG: Line $i => "${lines[i]}"');
-      }
-
-      String? detectedTitle;
-      String? detectedAuthor;
-
-      // Try to detect explicit author cues such as "by" or "author".
-      for (final line in lines) {
-        final lower = line.toLowerCase();
-
-        if (detectedAuthor == null &&
-            (lower.startsWith('by ') || lower.startsWith('by:'))) {
-          final parts = line.split(RegExp(r'by[:]?\s*', caseSensitive: false));
-          if (parts.length > 1) {
-            detectedAuthor = parts.sublist(1).join(' ').trim();
-          }
-          continue;
-        }
-
-        if (detectedAuthor == null &&
-            (lower.startsWith('author ') || lower.startsWith('author:'))) {
-          final parts =
-              line.split(RegExp(r'author[:]?\s*', caseSensitive: false));
-          if (parts.length > 1) {
-            detectedAuthor = parts.sublist(1).join(' ').trim();
-          } else {
-            detectedAuthor = '';
-          }
-          continue;
-        }
-
-        if (detectedAuthor == null && lower.contains(' by ')) {
-          final parts = line.split(RegExp(r'\bby\b', caseSensitive: false));
-          if (parts.length >= 2) {
-            detectedTitle ??= parts.first.trim();
-            detectedAuthor = parts.last.trim();
-            continue;
-          }
-        }
-
-        detectedTitle ??= line;
-      }
-
-      detectedTitle ??= lines.isNotEmpty ? lines.first : '';
-      if (detectedAuthor == null && lines.length > 1) {
-        detectedAuthor = lines[1];
-      }
-
-      setState(() {
-        widget.entry.titleController.text = detectedTitle ?? '';
-        widget.entry.authorController.text = detectedAuthor ?? '';
-      });
-
-      print(
-          'DEBUG: Assigned title="${widget.entry.titleController.text}", author="${widget.entry.authorController.text}"');
-
-      await textRecognizer.close();
-      print('DEBUG: TextRecognizer closed.');
-    } catch (e, stack) {
-      print('ERROR: Exception during OCR extraction: $e');
-      print(stack);
-    }
-  }
-
   Future<void> _pickImage() async {
-    print('DEBUG: Cover tapped');
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -364,15 +285,12 @@ class _BookEntryCardState extends State<_BookEntryCard> {
                 onTap: () async {
                   final picked = await _picker.pickImage(source: ImageSource.camera);
                   if (picked != null) {
-                    print('DEBUG: Camera image picked: ${picked.path}');
                     setState(() {
                       widget.entry.imageFile = File(picked.path);
                     });
-                    print('DEBUG: Calling _extractBookInfo...');
-                    await _extractBookInfo(File(picked.path));
                   }
-                  if (mounted) {
-                    Future.microtask(() => Navigator.pop(context));
+                  if (mounted && Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
                   }
                 },
               ),
@@ -382,12 +300,9 @@ class _BookEntryCardState extends State<_BookEntryCard> {
                 onTap: () async {
                   final picked = await _picker.pickImage(source: ImageSource.gallery);
                   if (picked != null) {
-                    print('DEBUG: Gallery image picked: ${picked.path}');
                     setState(() {
                       widget.entry.imageFile = File(picked.path);
                     });
-                    print('DEBUG: Calling _extractBookInfo...');
-                    await _extractBookInfo(File(picked.path));
                   }
                   if (mounted) Navigator.pop(context);
                 },

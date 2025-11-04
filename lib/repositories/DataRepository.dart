@@ -12,6 +12,7 @@ extension UserData on AuthenticationRepository {
     required String author,
     String? imageUrl,
     bool availableForTrade = true,
+    String? coverUrl,
   }) async {
     final id = _uuid.v4();
     await supabase.from('books').insert({
@@ -19,7 +20,7 @@ extension UserData on AuthenticationRepository {
       'user_id': uid,
       'title': title,
       'author': author,
-      'cover_url': imageUrl,
+      'cover_url': coverUrl,
       'created_at': DateTime.now().toIso8601String(),
     });
     return id;
