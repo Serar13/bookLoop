@@ -16,14 +16,24 @@ class CreateProfileScreen extends StatefulWidget {
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _customGenderController = TextEditingController();
   File? _image;
   String? _existingPhotoUrl;
   bool _isLoading = false;
+  String? _selectedGender;
 
   @override
   void initState() {
     super.initState();
     _loadExistingProfile();
+  }
+
+  @override
+  void dispose() {
+    _cityController.dispose();
+    _bioController.dispose();
+    _customGenderController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadExistingProfile() async {
@@ -40,6 +50,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       setState(() {
         _cityController.text = response['city'] ?? '';
         _bioController.text = response['bio'] ?? '';
+        _selectedGender = response['gender'];
         _existingPhotoUrl = response['photo_url'];
       });
     }
@@ -139,10 +150,15 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         print('DEBUG: Image uploaded: $photoUrl');
       }
 
+      final gender = _selectedGender == 'Other'
+          ? _customGenderController.text.trim()
+          : _selectedGender;
+
       final data = {
         'city': city,
         'bio': bio,
         'photo_url': photoUrl,
+        'gender': gender,
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -262,6 +278,47 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<String>(
+              value: _selectedGender,
+              onChanged: (value) {
+                setState(() {
+                  _selectedGender = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Gender',
+                prefixIcon: const Icon(Icons.person),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'Male', child: Text('Male')),
+                DropdownMenuItem(value: 'Female', child: Text('Female')),
+                DropdownMenuItem(value: 'Other', child: Text('Other')),
+              ],
+            ),
+            if (_selectedGender == 'Other')
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: TextField(
+                  controller: _customGenderController,
+                  decoration: InputDecoration(
+                    labelText: 'Please specify',
+                    prefixIcon: const Icon(Icons.edit),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: _isLoading ? null : _saveProfile,
