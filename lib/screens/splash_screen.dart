@@ -36,14 +36,59 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     // Navigare după 5 secunde
-    Future.delayed(const Duration(seconds: 5), () {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user != null) {
-        GoRouter.of(context).go(createProfilePath);
+    Future.delayed(const Duration(seconds: 5), _handleNavigation);
+  }
+
+  Future<void> _handleNavigation() async {
+    final supabase = Supabase.instance.client;
+    final currentUser = supabase.auth.currentUser;
+
+    if (!mounted) return;
+
+    if (currentUser == null) {
+      GoRouter.of(context).go(loginPath);
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('profiles')
+          .select('city, bio, photo_url')
+          .eq('id', currentUser.id)
+          .limit(1);
+
+      Map<String, dynamic>? profile;
+      if (response is List && response.isNotEmpty) {
+        final raw = response.first;
+        if (raw is Map<String, dynamic>) {
+          profile = raw;
+        }
+      }
+
+      final hasCompletedProfile = profile != null &&
+          _isFieldFilled(profile['city']) &&
+          _isFieldFilled(profile['bio']) &&
+          _isFieldFilled(profile['photo_url']);
+
+      if (!mounted) return;
+
+      if (hasCompletedProfile) {
+        GoRouter.of(context).go(homePath);
       } else {
         GoRouter.of(context).go(onBordingPath);
       }
-    });
+    } catch (_) {
+      if (!mounted) return;
+      GoRouter.of(context).go(homePath);
+    }
+  }
+
+  bool _isFieldFilled(dynamic value) {
+    if (value == null) return false;
+    if (value is String) {
+      return value.trim().isNotEmpty;
+    }
+    return true;
   }
 
   @override
