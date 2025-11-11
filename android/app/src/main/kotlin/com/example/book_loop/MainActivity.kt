@@ -1,4 +1,4 @@
-package com.example.bookLoop
+package com.rares.bookLoop
 
 import io.flutter.embedding.android.FlutterActivity
 

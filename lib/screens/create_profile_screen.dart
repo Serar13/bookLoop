@@ -14,6 +14,50 @@ class CreateProfileScreen extends StatefulWidget {
 }
 
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
+  final List<String> _counties = [
+    'Alba',
+    'Arad',
+    'Argeș',
+    'Bacău',
+    'Bihor',
+    'Bistrița-Năsăud',
+    'Botoșani',
+    'Brașov',
+    'Brăila',
+    'Buzău',
+    'Caraș-Severin',
+    'Cluj',
+    'Constanța',
+    'Covasna',
+    'Dâmbovița',
+    'Dolj',
+    'Galați',
+    'Giurgiu',
+    'Gorj',
+    'Harghita',
+    'Hunedoara',
+    'Ialomița',
+    'Iași',
+    'Ilfov',
+    'Maramureș',
+    'Mehedinți',
+    'Mureș',
+    'Neamț',
+    'Olt',
+    'Prahova',
+    'Satu Mare',
+    'Sălaj',
+    'Sibiu',
+    'Suceava',
+    'Teleorman',
+    'Timiș',
+    'Tulcea',
+    'Vaslui',
+    'Vâlcea',
+    'Vrancea',
+    'București',
+  ];
+  String? _selectedCounty;
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _customGenderController = TextEditingController();
@@ -48,6 +92,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
     if (response != null) {
       setState(() {
+        _selectedCounty = response['county'] ?? '';
         _cityController.text = response['city'] ?? '';
         _bioController.text = response['bio'] ?? '';
         _selectedGender = response['gender'];
@@ -118,13 +163,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
     }
 
     final uid = user.id;
-    final city = _cityController.text.trim();
+    final county = _selectedCounty ?? '';
     final bio = _bioController.text.trim();
 
-    print('DEBUG: Saving profile for user: $uid, city: $city, bio: $bio');
+    print('DEBUG: Saving profile for user: $uid, county: $county, bio: $bio');
     print('DEBUG: Image: $_image, existingPhotoUrl: $_existingPhotoUrl');
 
-    if ((_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty)) || city.isEmpty || bio.isEmpty) {
+    if ((_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty)) || county.isEmpty || bio.isEmpty) {
       print('DEBUG: Missing fields');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all fields')),
@@ -155,7 +200,8 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           : _selectedGender;
 
       final data = {
-        'city': city,
+        'city': _cityController.text.trim(),
+        'county': county,
         'bio': bio,
         'photo_url': photoUrl,
         'gender': gender,
@@ -250,11 +296,62 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
             const SizedBox(height: 10),
             const Text('Tap to add profile photo', style: TextStyle(color: Colors.black54)),
             const SizedBox(height: 30),
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: DropdownButtonFormField<String>(
+                value: _counties.contains(_selectedCounty) ? _selectedCounty : null,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCounty = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: const Icon(Icons.location_city, color: Colors.black54),
+                  hintText: 'Select County',
+                  hintStyle: const TextStyle(color: Colors.black45),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                dropdownColor: Colors.white,
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.black87),
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: _counties.map((county) {
+                  return DropdownMenuItem<String>(
+                    value: county,
+                    child: Text(
+                      county,
+                      style: const TextStyle(color: Colors.black87, fontSize: 16),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _cityController,
               decoration: InputDecoration(
-                hintText: 'City',
-                prefixIcon: const Icon(Icons.location_city),
+                hintText: 'Enter your city',
+                prefixIcon: const Icon(Icons.location_on),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
