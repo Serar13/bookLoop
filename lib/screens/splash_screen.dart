@@ -102,49 +102,60 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Logo inițial – centrat complet
-          AnimatedAlign(
-            alignment: moveLeft
-                ? const Alignment(-0.60, 0.0)
-                : Alignment.center,
-            duration: const Duration(milliseconds: 1200),
-            curve: Curves.easeInOut,
-            child: Image.asset(
-              'assets/iconWithOutBackgroud.png',
-              width: 100,
-              height: 100,
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF8F3ED),
+              Color(0xFFEAD9C8),
+            ],
           ),
-
-          // Textul „bookLoop” – apare doar după ce logo-ul s-a mutat
-          AnimatedOpacity(
-            opacity: showText ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 1000),
-            curve: Curves.easeInOut,
-            child: Align(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 70), // puțin spațiu după logo
-                  const Text(
-                    "bookLoop",
-                    style: TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Logo inițial – centrat complet
+            AnimatedAlign(
+              alignment: moveLeft
+                  ? const Alignment(-0.60, 0.0)
+                  : Alignment.center,
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeInOut,
+              child: Image.asset(
+                'assets/iconWithOutBackgroud.png',
+                width: 100,
+                height: 100,
               ),
             ),
-          ),
-        ],
+
+            // Textul „bookLoop” – apare doar după ce logo-ul s-a mutat
+            AnimatedOpacity(
+              opacity: showText ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOut,
+              child: Align(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(width: 70), // puțin spațiu după logo
+                    const Text(
+                      "bookLoop",
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

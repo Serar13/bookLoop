@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'chat_list_screen.dart';
 import 'chat_screen.dart';
 
 class ExchangeScreen extends StatefulWidget {
@@ -46,11 +47,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   Color _statusColor(String status) {
     switch (status) {
       case 'accepted':
-        return Colors.green;
+        return const Color(0xFF8CB369);
       case 'declined':
-        return Colors.red;
+        return const Color(0xFFC4746E);
       default:
-        return Colors.amber;
+        return const Color(0xFFBFAF91);
     }
   }
 
@@ -59,21 +60,27 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
     final requested = trade['requested_book'];
     final status = trade['status'] ?? 'pending';
 
+    final iconColor = isReceived ? const Color(0xFFBFAF91) : const Color(0xFF8B6B4F);
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          colors: [Colors.white, Color(0xFFF5EFE6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 5,
-            offset: const Offset(2, 3),
+            color: Colors.brown.shade100.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(3, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -81,152 +88,203 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               children: [
                 Icon(
                   isReceived ? Icons.inbox : Icons.outbox,
-                  color: const Color(0xFF7E57C2),
+                  color: iconColor,
+                  size: 28,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   isReceived ? "Schimb primit" : "Schimb trimis",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: iconColor,
+                    fontFamily: 'Montserrat',
                   ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _statusColor(status).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
+                    color: _statusColor(status).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(30),
                   ),
                   child: Text(
                     status.toUpperCase(),
                     style: TextStyle(
                       color: _statusColor(status),
                       fontWeight: FontWeight.bold,
+                      fontFamily: 'Montserrat',
+                      fontSize: 13,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
                   child: Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: const Color(0xFFD8CFC2), width: 1.3),
+                        ),
+                        clipBehavior: Clip.antiAlias,
                         child: Image.network(
                           isReceived
                               ? (requested['cover_url'] ??
                                   'https://cdn-icons-png.flaticon.com/512/29/29302.png')
                               : (offered['cover_url'] ??
                                   'https://cdn-icons-png.flaticon.com/512/29/29302.png'),
-                          height: 120,
+                          height: 130,
                           fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         isReceived ? requested['title'] ?? '' : offered['title'] ?? '',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Montserrat',
+                          fontSize: 15,
+                          color: Color(0xFF5B4B3A),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  child: Icon(Icons.swap_horiz, size: 30, color: Colors.grey),
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: Icon(Icons.swap_horiz, size: 32, color: Color(0xFF8B6B4F)),
                 ),
                 Expanded(
                   child: Column(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: const Color(0xFFD8CFC2), width: 1.3),
+                        ),
+                        clipBehavior: Clip.antiAlias,
                         child: Image.network(
                           isReceived
                               ? (offered['cover_url'] ??
                                   'https://cdn-icons-png.flaticon.com/512/29/29302.png')
                               : (requested['cover_url'] ??
                                   'https://cdn-icons-png.flaticon.com/512/29/29302.png'),
-                          height: 120,
+                          height: 130,
                           fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         isReceived ? offered['title'] ?? '' : requested['title'] ?? '',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Montserrat',
+                          fontSize: 15,
+                          color: Color(0xFF5B4B3A),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             if (trade['message'] != null && (trade['message'] as String).trim().isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
                 child: Text(
                   '"${trade['message']}"',
                   style: const TextStyle(
                     fontStyle: FontStyle.italic,
-                    color: Colors.black54,
+                    color: Color(0xFF7E6B5A),
+                    fontFamily: 'Montserrat',
+                    fontSize: 14,
                   ),
                 ),
               ),
             if (isReceived && status == 'pending')
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final tradeId = trade['id'];
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () async {
+                        final tradeId = trade['id'];
 
-                      await supabase
-                          .from('book_trades')
-                          .update({
-                            'status': 'accepted',
-                            'responded_at': DateTime.now().toIso8601String(),
-                          })
-                          .eq('id', tradeId);
+                        await supabase
+                            .from('book_trades')
+                            .update({
+                              'status': 'accepted',
+                              'responded_at': DateTime.now().toIso8601String(),
+                            })
+                            .eq('id', tradeId);
 
-                      final response = await supabase.rpc(
-                        'create_or_get_conversation_for_trade',
-                        params: {'p_trade_id': tradeId},
-                      );
-
-                      final conversationId = response as String?;
-
-                      if (conversationId != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen(conversationId: conversationId),
-                          ),
+                        final response = await supabase.rpc(
+                          'create_or_get_conversation_for_trade',
+                          params: {'p_trade_id': tradeId},
                         );
-                      }
 
-                      _loadTrades();
-                    },
-                    icon: const Icon(Icons.check),
-                    label: const Text("Acceptă"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      await supabase
-                          .from('book_trades')
-                          .update({'status': 'declined'}).eq('id', trade['id']);
-                      _loadTrades();
-                    },
-                    icon: const Icon(Icons.close),
-                    label: const Text("Refuză"),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  ),
-                ],
+                        final conversationId = response as String?;
+
+                        if (conversationId != null) {
+                          if (!mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatListScreen(initialConversationId: conversationId),
+                            ),
+                          );
+                        }
+
+                        _loadTrades();
+                      },
+                      icon: const Icon(Icons.check, size: 20),
+                      label: const Text("Acceptă"),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF8CB369),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Montserrat',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        await supabase
+                            .from('book_trades')
+                            .update({'status': 'declined'}).eq('id', trade['id']);
+                        _loadTrades();
+                      },
+                      icon: const Icon(Icons.close, size: 20),
+                      label: const Text("Refuză"),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFC4746E),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Montserrat',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -236,62 +294,98 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F6F1),
-      appBar: AppBar(
-        title: const Text("Schimburi"),
-        backgroundColor: const Color(0xFF7E57C2),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadTrades,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (receivedTrades.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: const Text(
-                            "Cererile primite",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ...receivedTrades.map((t) => _buildTradeCard(t, true)),
-                      if (sentTrades.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: const Text(
-                            "Cererile trimise",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ...sentTrades.map((t) => _buildTradeCard(t, false)),
-                      if (receivedTrades.isEmpty && sentTrades.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 80),
+    return SafeArea(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFDFCFB), Color(0xFFE2D1C3)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF8CB369)))
+            : RefreshIndicator(
+                onRefresh: _loadTrades,
+                color: const Color(0xFF8CB369),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 24, top: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (receivedTrades.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                             child: Text(
-                              "Nu există schimburi momentan 📚",
-                              style: TextStyle(color: Colors.grey, fontSize: 16),
+                              "Cererile primite",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                                color: Colors.brown.shade700,
+                                fontFamily: 'Montserrat',
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                        ...receivedTrades.map((t) => _buildTradeCard(t, true)),
+                        if (sentTrades.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                            child: Text(
+                              "Cererile trimise",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                                color: Colors.brown.shade700,
+                                fontFamily: 'Montserrat',
+                              ),
+                            ),
+                          ),
+                        ...sentTrades.map((t) => _buildTradeCard(t, false)),
+                        if (receivedTrades.isEmpty && sentTrades.isEmpty)
+                          Center(
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 80),
+                              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.85),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.brown.shade100.withOpacity(0.5),
+                                    blurRadius: 10,
+                                    offset: const Offset(3, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Text(
+                                    "📭",
+                                    style: TextStyle(fontSize: 60),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    "Momentan nu ai schimburi active.",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF7E6B5A),
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Montserrat',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

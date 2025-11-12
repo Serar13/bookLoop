@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
-  const ChatListScreen({super.key});
+  final String? initialConversationId;
+  const ChatListScreen({super.key, this.initialConversationId});
 
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
@@ -13,6 +14,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   final supabase = Supabase.instance.client;
   bool isLoading = true;
   List<Map<String, dynamic>> conversations = [];
+  bool _navigatedToInitial = false;
 
   @override
   void initState() {
@@ -32,7 +34,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
       print('📡 Încarc conversațiile pentru user: ${user.id}');
       final data = await supabase
           .from('conversations')
-          .select('id, updated_at, messages(content, created_at), conversation_members(user_id, profiles(name))')
+          .select('''
+            id,
+            updated_at,
+            messages(content, created_at),
+            conversation_members(
+              user_id,
+              profiles(name, photo_url)
+            )
+          ''')
           .order('updated_at', ascending: false);
 
       print('✅ Rezultat Supabase: $data');
@@ -46,6 +56,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
         conversations = List<Map<String, dynamic>>.from(filtered);
         isLoading = false;
       });
+
+      if (!_navigatedToInitial && widget.initialConversationId != null) {
+        final matches = conversations
+            .where((c) => c['id'] == widget.initialConversationId)
+            .cast<Map<String, dynamic>>()
+            .toList();
+
+        if (matches.isNotEmpty) {
+          _navigatedToInitial = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(conversationId: matches.first['id']),
+              ),
+            );
+          });
+        }
+      }
     } catch (error, stack) {
       print('❌ Eroare la încărcare conversații: $error');
       print(stack);
@@ -58,49 +88,110 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F6F1),
       appBar: AppBar(
-        title: const Text("Conversații"),
-        backgroundColor: const Color(0xFF7E57C2),
+        backgroundColor: const Color(0xFFFFFAF3),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF3E2F25)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          "Discuții",
+          style: TextStyle(
+            color: Color(0xFF3E2F25),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : conversations.isEmpty
-          ? const Center(
-        child: Text("Nu ai conversații încă 💬"),
-      )
-          : ListView.builder(
-        itemCount: conversations.length,
-        itemBuilder: (context, index) {
-          final convo = conversations[index];
-          final members = convo['conversation_members'] as List<dynamic>? ?? [];
-          final otherUser = members.firstWhere(
-            (m) => m['user_id'] != supabase.auth.currentUser!.id,
-            orElse: () => {'profiles': {'username': 'Utilizator necunoscut'}},
-          );
-          final lastMsg = (convo['messages'] != null && convo['messages'].isNotEmpty)
-              ? convo['messages'].last['content']
-              : "Fără mesaje încă";
+              ? const Center(
+                  child: Text("Nu ai conversații încă 💬"),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadConversations,
+                  color: const Color(0xFF7E57C2),
+                  backgroundColor: Colors.white,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: conversations.length,
+                    itemBuilder: (context, index) {
+                      final convo = conversations[index];
+                      final members =
+                          convo['conversation_members'] as List<dynamic>? ?? [];
 
-          return ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0xFF7E57C2),
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            title: Text(
-              otherUser['profiles']['username'] ?? "Utilizator necunoscut",
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(lastMsg, maxLines: 1, overflow: TextOverflow.ellipsis),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatScreen(conversationId: convo['id']),
+                      final currentUserId = supabase.auth.currentUser!.id;
+                      final otherUser = members.firstWhere(
+                        (m) => m['user_id'] != currentUserId,
+                        orElse: () => members.isNotEmpty ? members.first : {'profiles': {}},
+                      );
+
+                      final otherProfile = otherUser['profiles'] ?? {};
+                      final otherName =
+                          otherProfile['name'] ?? 'Utilizator necunoscut';
+                      final photoUrl = otherProfile['photo_url'];
+
+                      final lastMsg = (convo['messages'] != null &&
+                              convo['messages'].isNotEmpty)
+                          ? convo['messages'].last['content']
+                          : "Fără mesaje încă";
+
+                      return Container(
+                        margin:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 26,
+                            backgroundColor: const Color(0xFF7E57C2),
+                            backgroundImage: (photoUrl != null &&
+                                    photoUrl.toString().isNotEmpty)
+                                ? NetworkImage(photoUrl)
+                                : null,
+                            child: (photoUrl == null ||
+                                    photoUrl.toString().isEmpty)
+                                ? const Icon(Icons.person, color: Colors.white)
+                                : null,
+                          ),
+                          title: Text(
+                            otherName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Text(
+                            lastMsg,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatScreen(
+                                    conversationId: convo['id']),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 }

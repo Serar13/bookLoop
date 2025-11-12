@@ -255,173 +255,131 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFFFD54F),
+      backgroundColor: const Color(0xFFFDF6EE),
       appBar: AppBar(
-        title: const Text('Complete Your Profile', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Creează-ți profilul',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF4A2C2A),
+          ),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: const Color(0xFFFDF6EE),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Color(0xFF4A2C2A)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-                shape: BoxShape.circle,
-              ),
-              child: GestureDetector(
-                onTap: _pickImage,
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFD2B48C), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.brown.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
                 child: CircleAvatar(
                   radius: 60,
                   backgroundImage: _image != null
                       ? FileImage(_image!)
-                      : (_existingPhotoUrl != null ? NetworkImage(_existingPhotoUrl!) : null) as ImageProvider<Object>?,
-                  backgroundColor: Colors.white,
+                      : (_existingPhotoUrl != null
+                          ? NetworkImage(_existingPhotoUrl!)
+                          : null) as ImageProvider<Object>?,
+                  backgroundColor: const Color(0xFFFDF6EE),
                   child: (_image == null && (_existingPhotoUrl == null || _existingPhotoUrl!.isEmpty))
-                      ? const Icon(Icons.camera_alt, size: 40, color: Colors.grey)
+                      ? const Icon(Icons.camera_alt, size: 40, color: Color(0xFF8D6E63))
                       : null,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-            const Text('Tap to add profile photo', style: TextStyle(color: Colors.black54)),
-            const SizedBox(height: 30),
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+            const Text(
+              'Atinge pentru a adăuga o fotografie de profil',
+              style: TextStyle(color: Color(0xFF8D6E63), fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+
+            // Județ
+            _buildInputContainer(
               child: DropdownButtonFormField<String>(
                 value: _counties.contains(_selectedCounty) ? _selectedCounty : null,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCounty = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                  prefixIcon: const Icon(Icons.location_city, color: Colors.black54),
-                  hintText: 'Select County',
-                  hintStyle: const TextStyle(color: Colors.black45),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                dropdownColor: Colors.white,
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.black87),
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                onChanged: (value) => setState(() => _selectedCounty = value),
+                decoration: _inputDecoration('Selectează județul', Icons.location_city),
+                dropdownColor: const Color(0xFFFFFBF5),
                 items: _counties.map((county) {
                   return DropdownMenuItem<String>(
                     value: county,
-                    child: Text(
-                      county,
-                      style: const TextStyle(color: Colors.black87, fontSize: 16),
-                    ),
+                    child: Text(county, style: const TextStyle(color: Color(0xFF4A2C2A))),
                   );
                 }).toList(),
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _cityController,
-              decoration: InputDecoration(
-                hintText: 'Enter your city',
-                prefixIcon: const Icon(Icons.location_on),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
+
+            // Oraș
+            _buildInputContainer(
+              child: TextField(
+                controller: _cityController,
+                decoration: _inputDecoration('Oraș', Icons.location_on),
               ),
             ),
             const SizedBox(height: 20),
-            TextField(
-              controller: _bioController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Write a short bio...',
-                prefixIcon: const Icon(Icons.edit),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
+
+            // Bio
+            _buildInputContainer(
+              child: TextField(
+                controller: _bioController,
+                maxLines: 3,
+                decoration: _inputDecoration('Scrie câteva lucruri despre tine', Icons.edit),
               ),
             ),
             const SizedBox(height: 20),
-            DropdownButtonFormField<String>(
-              value: _selectedGender,
-              onChanged: (value) {
-                setState(() {
-                  _selectedGender = value;
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'Gender',
-                prefixIcon: const Icon(Icons.person),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
+
+            // Gender
+            _buildInputContainer(
+              child: DropdownButtonFormField<String>(
+                value: _selectedGender,
+                onChanged: (value) => setState(() => _selectedGender = value),
+                decoration: _inputDecoration('Gen', Icons.person),
+                items: const [
+                  DropdownMenuItem(value: 'Male', child: Text('Masculin')),
+                  DropdownMenuItem(value: 'Female', child: Text('Feminin')),
+                  DropdownMenuItem(value: 'Other', child: Text('Altul')),
+                ],
               ),
-              items: const [
-                DropdownMenuItem(value: 'Male', child: Text('Male')),
-                DropdownMenuItem(value: 'Female', child: Text('Female')),
-                DropdownMenuItem(value: 'Other', child: Text('Other')),
-              ],
             ),
             if (_selectedGender == 'Other')
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
-                child: TextField(
-                  controller: _customGenderController,
-                  decoration: InputDecoration(
-                    labelText: 'Please specify',
-                    prefixIcon: const Icon(Icons.edit),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
-                    ),
+                child: _buildInputContainer(
+                  child: TextField(
+                    controller: _customGenderController,
+                    decoration: _inputDecoration('Specifică genul', Icons.edit),
                   ),
                 ),
               ),
             const SizedBox(height: 30),
+
+            // Buton
             ElevatedButton(
               onPressed: _isLoading ? null : _saveProfile,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: const Color(0xFFD2B48C),
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -429,13 +387,47 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
               child: _isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text(
-                'Continue',
-                style: TextStyle(fontSize: 18),
-              ),
+                      'Continuă',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF4A2C2A),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      prefixIcon: Icon(icon, color: const Color(0xFF8D6E63)),
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF8D6E63)),
+      filled: true,
+      fillColor: const Color(0xFFFFFBF5),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  Widget _buildInputContainer({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.brown.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

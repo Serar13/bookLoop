@@ -164,86 +164,127 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFD54F),
-      appBar: AppBar(
-        title: const Text('Add Books', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 20),
-            const Icon(Icons.menu_book, size: 100, color: Colors.white),
-            const SizedBox(height: 20),
-            const Center(
-              child: Text(
-                'Share your favourite reads',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Center(
-              child: Text(
-                'Add the books you want to trade with the community',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 40),
-            ...List.generate(_bookEntries.length, (index) {
-              final entry = _bookEntries[index];
-              return Padding(
-                padding: EdgeInsets.only(bottom: index == _bookEntries.length - 1 ? 0 : 24),
-                child: _BookEntryCard(
-                  entry: entry,
-                  index: index,
-                  onRemove: _bookEntries.length > 1
-                      ? () => _removeBookEntry(index)
-                      : null,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFDFCFB), Color(0xFFE2D1C3)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: GoRouter.of(context).canPop()
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3E2F25)),
+                        onPressed: () {
+                          if (GoRouter.of(context).canPop()) {
+                            GoRouter.of(context).pop();
+                          } else {
+                            GoRouter.of(context).go(homePath);
+                          }
+                        },
+                      )
+                    : null,
+                title: const Text(
+                  'Adaugă cărți',
+                  style: TextStyle(
+                    color: Color(0xFF3E2F25),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              );
-            }),
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: _addBookEntry,
-              icon: const Icon(Icons.add),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.black,
-                side: const BorderSide(color: Colors.black, width: 1.5),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                centerTitle: true,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Icon(Icons.menu_book_rounded, size: 80, color: Color(0xFF8C6E54)),
+                      const SizedBox(height: 20),
+                      const Center(
+                        child: Text(
+                          'Share your favourite reads',
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3E2F25)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Center(
+                        child: Text(
+                          'Add the books you want to trade with the community',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: Color(0xFF3E2F25)),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      ...List.generate(_bookEntries.length, (index) {
+                        final entry = _bookEntries[index];
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: index == _bookEntries.length - 1 ? 0 : 24),
+                          child: _BookEntryCard(
+                            entry: entry,
+                            index: index,
+                            onRemove: _bookEntries.length > 1
+                                ? () => _removeBookEntry(index)
+                                : null,
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 24),
+                      OutlinedButton.icon(
+                        onPressed: _addBookEntry,
+                        icon: const Icon(Icons.add, color: Color(0xFF8C6E54)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF8C6E54),
+                          side: const BorderSide(color: Color(0xFF8C6E54), width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        label: const Text('Add another book'),
+                      ),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _saveBooks,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8C6E54),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                                _bookEntries.length == 1 ? 'Salvează cartea' : 'Salvează cărțile',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () => GoRouter.of(context).go(homePath),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF8C6E54),
+                        ),
+                        child: const Text('Skip for now'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              label: const Text('Add another book'),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _saveBooks,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(
-                _bookEntries.length == 1 ? 'Save book' : 'Save books',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () => GoRouter.of(context).go(homePath),
-              child: const Text('Skip for now'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -318,7 +359,7 @@ class _BookEntryCardState extends State<_BookEntryCard> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF7E9D7),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -339,9 +380,9 @@ class _BookEntryCardState extends State<_BookEntryCard> {
               width: 120,
               height: 180,
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F7F7),
+                color: const Color(0xFFE3C7A4),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
+                border: Border.all(color: const Color(0xFF8C6E54)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -364,12 +405,12 @@ class _BookEntryCardState extends State<_BookEntryCard> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+                          Icon(Icons.camera_alt, size: 40, color: Color(0xFF8C6E54)),
                           SizedBox(height: 8),
                           Text(
                             'Tap to add cover',
                             style: TextStyle(
-                              color: Colors.grey,
+                              color: Color(0xFF8C6E54),
                               fontSize: 12,
                             ),
                           ),
@@ -386,13 +427,14 @@ class _BookEntryCardState extends State<_BookEntryCard> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
+                  color: Color(0xFF3E2F25),
                 ),
               ),
               const Spacer(),
               if (widget.onRemove != null)
                 IconButton(
                   onPressed: widget.onRemove,
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, color: Color(0xFF8C6E54)),
                   tooltip: 'Remove book',
                 ),
             ],
@@ -437,18 +479,24 @@ class _StyledTextField extends StatelessWidget {
       textInputAction: textInputAction,
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: Icon(prefixIcon),
+        prefixIcon: Icon(prefixIcon, color: const Color(0xFF8C6E54)),
         filled: true,
-        fillColor: const Color(0xFFF7F7F7),
+        fillColor: const Color(0xFFF7E9D7),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFF8C6E54), width: 1.5),
         ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: Color(0xFF8C6E54), width: 1.5),
+        ),
+        hintStyle: const TextStyle(color: Color(0xFF8C6E54)),
       ),
+      style: const TextStyle(color: Color(0xFF3E2F25)),
     );
   }
 }

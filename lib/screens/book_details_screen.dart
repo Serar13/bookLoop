@@ -34,7 +34,7 @@ class BookDetailsScreen extends StatelessWidget {
                 children: [
                   coverUrl != null
                       ? Image.network(coverUrl, fit: BoxFit.cover)
-                      : Image.asset('assets/images/book_placeholder.png', fit: BoxFit.cover),
+                      : Image.asset('assets/book_placeholder.jpeg', fit: BoxFit.cover),
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(

@@ -22,9 +22,9 @@ class _MainNavigationState extends State<MainNavigation> {
   String _getTitle() {
     switch (_selectedIndex) {
       case 0:
-        return 'Cărțile mele 📚';
+        return 'Bibliotecă';
       case 1:
-        return 'Schimburi 🔄';
+        return 'Schimburi';
       case 2:
         return 'Evenimente ☕';
       default:
@@ -35,26 +35,47 @@ class _MainNavigationState extends State<MainNavigation> {
   List<Widget> _getActions(BuildContext context) {
     if (_selectedIndex == 0) {
       return [
-        IconButton(
-          icon: const Icon(Icons.add),
+        _buildActionButton(
+          icon: Icons.add,
           tooltip: 'Adaugă carte',
-          onPressed: () => context.go('/addBooks'),
+          onTap: () => context.push('/addBooks'),
         ),
-        IconButton(
-          icon: const Icon(Icons.account_circle, color: Colors.black),
-          onPressed: () => context.push('/profile'),
+        const SizedBox(width: 10),
+        _buildActionButton(
+          icon: Icons.person_outline,
+          tooltip: 'Profil',
+          onTap: () => context.push('/profile'),
         ),
       ];
     } else if (_selectedIndex == 1) {
       return [
-        IconButton(
-          icon: const Icon(Icons.chat_bubble_outline, color: Colors.black),
+        _buildActionButton(
+          icon: Icons.chat_bubble_outline,
           tooltip: 'Conversații',
-          onPressed: () => context.push('/chatList'),
+          onTap: () => context.push('/chatList'),
         ),
       ];
     }
     return [];
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFD8BFA4),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
   }
 
   void _onItemTapped(int index) {
@@ -67,19 +88,45 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFFD54F),
-        centerTitle: true,
-        title: Text(
-          _getTitle(),
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFFAF3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.book_outlined, color: Color(0xFF8C6E54), size: 28),
+                      const SizedBox(width: 8),
+                      Text(
+                        _getTitle(),
+                        style: const TextStyle(
+                          color: Color(0xFF3E2F25),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(children: _getActions(context)),
+                ],
+              ),
+            ),
           ),
         ),
-        actions: _getActions(context),
-        iconTheme: const IconThemeData(color: Colors.black),
-        elevation: 0,
       ),
       body: SafeArea(child: widget.child),
       bottomNavigationBar: BottomNavigationBar(

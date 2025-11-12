@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../blocs/authentication/authentication_bloc.dart';
 import '../screens/create_profile_screen.dart';
+import '../screens/events_time_selection_screen.dart';
 import '../screens/login.dart';
 import '../repositories/authentication_repository.dart';
 import '../screens/main_top_bar.dart';
@@ -175,20 +176,9 @@ class AppRouter {
             pageBuilder: (context, state) => const NoTransitionPage(child: HomeScreen()),
           ),
           GoRoute(
-            name: 'profile',
-            path: '/profile',
-            pageBuilder: (context, state) => const NoTransitionPage(child: ProfileScreen()),
-          ),
-          GoRoute(
             name: 'exchange',
             path: '/exchange',
             pageBuilder: (context, state) => const NoTransitionPage(child: ExchangeScreen()),
-          ),
-          GoRoute(
-            name: 'chatList',
-            path: '/chatList',
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: ChatListScreen()),
           ),
           GoRoute(
             name: 'events',
@@ -196,6 +186,33 @@ class AppRouter {
             pageBuilder: (context, state) => const NoTransitionPage(child: EventsScreen()),
           ),
         ],
+      ),
+      GoRoute(
+        name: 'chatList',
+        path: '/chatList',
+        pageBuilder: (context, state) {
+          final initialConversationId = state.extra is String ? state.extra as String : null;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: ChatListScreen(initialConversationId: initialConversationId),
+            transitionDuration: const Duration(milliseconds: 400),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          );
+        },
+      ),
+      GoRoute(
+        name: 'profile',
+        path: '/profile',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ProfileScreen(),
+          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
       ),
       ShellRoute(
         navigatorKey: _topShellNavigatorKey,
@@ -217,6 +234,21 @@ class AppRouter {
             pageBuilder: (context, state) => const NoTransitionPage(child: ExchangeScreen()),
           ),
         ],
+      ),
+      GoRoute(
+        name: 'eventTimeSelection',
+        path: '/eventTimeSelection',
+        pageBuilder: (context, state) {
+          final eventId = state.extra as String;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: EventTimeSelectionScreen(eventId: eventId),
+            transitionDuration: const Duration(milliseconds: 400),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          );
+        },
       ),
     ],
   );

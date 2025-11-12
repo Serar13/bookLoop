@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EventTimeSelectionScreen extends StatefulWidget {
   final String eventId; // primim id-ul evenimentului curent
@@ -96,44 +97,95 @@ class _EventTimeSelectionScreenState extends State<EventTimeSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text("Alege intervalul orar"),
-        backgroundColor: Colors.orangeAccent,
+        title: Text(
+          "Alege intervalul orar",
+          style: GoogleFonts.merriweather(
+            color: const Color(0xFF4E342E),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        itemCount: intervals.length,
-        itemBuilder: (context, idx) {
-          final interval = intervals[idx];
-          final count = _attendeeCounts[interval] ?? 0;
-          final color = _getIndicatorColor(count);
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF8F5F0),
+              Color(0xFFEADBC8),
+            ],
+          ),
+        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF8C6E54)))
+            : ListView.builder(
+                padding: const EdgeInsets.only(top: kToolbarHeight + 20, left: 16, right: 16, bottom: 24),
+                itemCount: intervals.length,
+                itemBuilder: (context, idx) {
+                  final interval = intervals[idx];
+                  final count = _attendeeCounts[interval] ?? 0;
+                  final color = _getIndicatorColor(count);
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: color,
-                child: Text(
-                  count.toString(),
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.brown.withOpacity(0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        radius: 22,
+                        backgroundColor: color,
+                        child: Text(
+                          count.toString(),
+                          style: GoogleFonts.merriweather(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        interval,
+                        style: GoogleFonts.merriweather(
+                          fontSize: 16,
+                          color: const Color(0xFF5A4634),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      trailing: ElevatedButton(
+                        onPressed: () => _selectInterval(interval),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD8BFA4),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: Text(
+                          "Selectează",
+                          style: GoogleFonts.merriweather(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-              title: Text(interval),
-              trailing: ElevatedButton(
-                onPressed: () => _selectInterval(interval),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text("Selectează"),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
