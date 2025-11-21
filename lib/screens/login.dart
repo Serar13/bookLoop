@@ -156,6 +156,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: GoogleFonts.merriweather(fontSize: 16, color: const Color(0xFF5A4634)),
                     ),
                     const SizedBox(height: 36),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 18.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => GoRouter.of(context).push(forgotPasswordPagePath),
+                          child: Text(
+                            'Ai uitat parola?',
+                            style: GoogleFonts.merriweather(
+                              color: Color(0xFF8C6E54),
+                              fontSize: 14,
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     // Buton Log In
                     ElevatedButton(
                       onPressed: state is AuthenticationLoading ? null : _onLoginButtonPressed,

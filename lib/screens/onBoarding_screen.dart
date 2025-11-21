@@ -1,6 +1,7 @@
 import 'package:book_loop/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../services/onboarding_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -78,12 +79,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             top: 50,
             right: 20,
             child: GestureDetector(
-              onTap: () {
+              onTap: () async {
                 if (_currentIndex == 3) {
-                  // Handle Start action
+                  await OnboardingService.setCompleted();
                   GoRouter.of(context).push(singinPath);
                 } else {
-                  // Jump to the last slide
                   _pageController.animateToPage(
                     3, // Index of the last slide
                     duration: const Duration(milliseconds: 500), // Animation duration

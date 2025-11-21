@@ -13,6 +13,7 @@ import '../screens/login.dart';
 import '../repositories/authentication_repository.dart';
 import '../screens/main_top_bar.dart';
 import '../screens/register.dart';
+import '../screens/reset_password_screen.dart';
 import '../screens/splash_screen.dart';
 import 'package:book_loop/screens/add_books_screen.dart';
 import '../screens/exchange_screen.dart';
@@ -20,6 +21,7 @@ import '../screens/events_screen.dart';
 import 'package:book_loop/screens/book_details_screen.dart';
 import '../screens/profile_screen.dart';
 import 'package:book_loop/screens/chat_list_screen.dart';
+import '../screens/forgotPassword.dart';
 
 const String loginPath = "/login";
 const String singinPath = "/singin";
@@ -46,7 +48,10 @@ final GlobalKey<NavigatorState> _topShellNavigatorKey =
 GlobalKey<NavigatorState>(debugLabel: 'topShell');
 
 class AppRouter {
-  final GoRouter router = GoRouter(
+  final bool initialOnboarding;
+  AppRouter({required this.initialOnboarding});
+  static GlobalKey<NavigatorState> get navigatorKey => _rootNavigatorKey;
+  late final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: splashPath,
     debugLogDiagnostics: true,
@@ -166,6 +171,17 @@ class AppRouter {
           );
         },
       ),
+      GoRoute(
+        name: 'forgotPassword',
+        path: forgotPasswordPagePath,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ForgotPasswordScreen(),
+          transitionDuration: Duration(milliseconds: 400),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => MainNavigation(child: child),
@@ -196,6 +212,24 @@ class AppRouter {
             key: state.pageKey,
             child: ChatListScreen(initialConversationId: initialConversationId),
             transitionDuration: const Duration(milliseconds: 400),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          );
+        },
+      ),
+      GoRoute(
+        name: 'resetPassword',
+        path: '/resetPassword',
+        pageBuilder: (context, state) {
+          final data = state.extra as Map<String, String>;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: ResetPasswordScreen(
+              recoveryToken: data['token']!,
+              email: data['email']!,
+            ),
+            transitionDuration: const Duration(milliseconds: 500),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
             },

@@ -128,29 +128,95 @@ class _AddBooksScreenState extends State<AddBooksScreen> {
 
       await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(savedCount == 1 ? 'Book added!' : 'Books added!'),
-          content: Text(
-            savedCount == 1
-                ? 'Your book has been saved successfully.'
-                : 'Your books have been saved successfully.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Add another'),
+        barrierDismissible: false,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDFCFB),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.check_circle_rounded,
+                      size: 70, color: Color(0xFF8C6E54)),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    savedCount == 1
+                        ? 'Cartea a fost adăugată!'
+                        : 'Cărțile au fost adăugate!',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF3E2F25),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    savedCount == 1
+                        ? 'Cartea ta a fost salvată cu succes.'
+                        : 'Cărțile tale au fost salvate cu succes.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF6F5643),
+                      fontSize: 16,
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF8C6E54), width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            foregroundColor: const Color(0xFF8C6E54),
+                          ),
+                          child: const Text("Mai adaugă"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            GoRouter.of(context).go(homePath);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF8C6E54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text(
+                            "Vezi librăria",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                GoRouter.of(context).go(homePath);
-              },
-              child: const Text('Go to library'),
-            ),
-          ],
-        ),
+          );
+        },
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,10 +1,13 @@
 import 'package:book_loop/router/app_router.dart';
 import 'package:book_loop/repositories/authentication_repository.dart';
 import 'package:book_loop/blocs/authentication/authentication_bloc.dart';
+import 'package:book_loop/services/onboarding_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uni_links/uni_links.dart';
+import 'package:go_router/go_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,32 +22,83 @@ void main() async {
   runApp(MyApp(authenticationRepository: authenticationRepository));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final AuthenticationRepository authenticationRepository;
 
   const MyApp({super.key, required this.authenticationRepository});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    try {
+      final initialUri = await getInitialUri();
+      if (initialUri != null) {
+        _handleUri(initialUri);
+      }
+
+      uriLinkStream.listen((Uri? uri) {
+        if (uri != null) {
+          _handleUri(uri);
+        }
+      });
+    } catch (e) {
+      debugPrint("DeepLink error: $e");
+    }
+  }
+
+  void _handleUri(Uri uri) {
+    debugPrint("Received deep link: $uri");
+
+    if (uri.host == "reset") {
+      final token = uri.queryParameters["token"];
+      final email = uri.queryParameters["email"];
+      if (token != null && email != null) {
+        AppRouter.navigatorKey.currentContext?.go(
+          "/resetPassword",
+          extra: {
+            "token": token,
+            "email": email,
+          },
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(
-          value: authenticationRepository, // Provide AuthenticationRepository
+          value: widget.authenticationRepository,
         ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => AuthenticationBloc(
-              authenticationRepository: authenticationRepository,
+              authenticationRepository: widget.authenticationRepository,
             ),
           ),
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: "BookLoop",
-          // router configuration
-          routerConfig: AppRouter().router,
+        child: FutureBuilder<bool>(
+          future: OnboardingService.isCompleted(),
+          builder: (context, snapshot) {
+            final initialOnboarding = snapshot.data ?? false;
+            return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              title: "BookLoop",
+              routerConfig: AppRouter(initialOnboarding: initialOnboarding).router,
+            );
+          },
         ),
       ),
     );

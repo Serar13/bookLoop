@@ -221,26 +221,86 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         print('DEBUG: Showing Add Books dialog');
         await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Add Books'),
-            content: const Text('Do you want to add your books now or later?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  GoRouter.of(context).go('/home');
-                },
-                child: const Text('Later'),
+          builder: (context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDFCFB),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 70, color: Color(0xFF8C6E54)),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Profil salvat!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF3E2F25),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Vrei să adaugi cărțile tale acum?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF6F5643),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              GoRouter.of(context).go('/home');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF8C6E54), width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              foregroundColor: const Color(0xFF8C6E54),
+                            ),
+                            child: const Text("Mai târziu"),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              GoRouter.of(context).go(addBooksPath);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8C6E54),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text(
+                              "Adaugă acum",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  GoRouter.of(context).go(addBooksPath);
-                },
-                child: const Text('Add Now'),
-              ),
-            ],
-          ),
+            );
+          },
         );
       }
     } catch (e) {
