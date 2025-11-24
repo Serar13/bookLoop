@@ -22,6 +22,7 @@ import 'package:book_loop/screens/book_details_screen.dart';
 import '../screens/profile_screen.dart';
 import 'package:book_loop/screens/chat_list_screen.dart';
 import '../screens/forgotPassword.dart';
+import 'package:book_loop/screens/badge_screen.dart';
 
 const String loginPath = "/login";
 const String singinPath = "/singin";
@@ -243,6 +244,18 @@ class AppRouter {
           key: state.pageKey,
           child: const ProfileScreen(),
           transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
+      GoRoute(
+        name: 'badges',
+        path: '/badges',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const BadgeScreen(),
+          transitionDuration: Duration(milliseconds: 500),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

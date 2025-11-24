@@ -18,8 +18,19 @@ class BookDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      body: CustomScrollView(
-        slivers: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF7EEDB),
+              Color(0xFFEADBC8),
+            ],
+          ),
+        ),
+        child: CustomScrollView(
+          slivers: [
           SliverAppBar(
             expandedHeight: 300,
             pinned: false,
@@ -89,8 +100,8 @@ class BookDetailsScreen extends StatelessWidget {
                     final isOwner = currentUserId == book['user_id'];
                     if (!isOwner) {
                       return Center(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
+                        child: GestureDetector(
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -98,8 +109,35 @@ class BookDetailsScreen extends StatelessWidget {
                               ),
                             );
                           },
-                          icon: const Icon(Icons.swap_horiz),
-                          label: const Text("Propune schimb"),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFB68B73),
+                              borderRadius: BorderRadius.circular(28),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.swap_horiz, color: Colors.white, size: 22),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Propune schimb",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     } else {
@@ -112,6 +150,7 @@ class BookDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
+    )
     );
   }
 }

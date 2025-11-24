@@ -46,6 +46,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
           .order('updated_at', ascending: false);
 
       print('✅ Rezultat Supabase: $data');
+      // DEBUG: afiseaza toti membrii tuturor conversatiilor
+      for (final convo in data) {
+        final cid = convo['id'];
+        final members = convo['conversation_members'] ?? [];
+        print("🔎 Conversatia $cid are ${members.length} membri:");
+        for (final m in members) {
+          print("   → user_id: ${m['user_id']}");
+        }
+      }
 
       final filtered = data.where((c) {
         final members = c['conversation_members'] as List<dynamic>? ?? [];
@@ -123,20 +132,45 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           convo['conversation_members'] as List<dynamic>? ?? [];
 
                       final currentUserId = supabase.auth.currentUser!.id;
+
+
+                      print("🔍 Conversation ${convo['id']}:");
+                      print("Members raw: $members");
+                      print("Current user: $currentUserId");
+
+                      print("🟥🟥 MEMBERS LIST PENTRU CONVERSATIA ${convo['id']}:");
+                      for (final m in members) {
+                        print("   user_id: ${m['user_id']}   name: ${m['profiles']?['name']}");
+                      }
+                      print("🟦 currentUserId = $currentUserId");
+
                       final otherUser = members.firstWhere(
                         (m) => m['user_id'] != currentUserId,
-                        orElse: () => members.isNotEmpty ? members.first : {'profiles': {}},
+                        orElse: () => members.isNotEmpty ? members.first : null,
                       );
 
+                      print("🟩 otherUser calculat: $otherUser");
+
+                      print("👉 Selected otherUser: $otherUser");
+
+
+                      if (otherUser == null) {
+                        return const SizedBox.shrink();
+                      }
+
                       final otherProfile = otherUser['profiles'] ?? {};
-                      final otherName =
-                          otherProfile['name'] ?? 'Utilizator necunoscut';
+                      final otherName = otherProfile['name'] ?? 'Utilizator necunoscut';
                       final photoUrl = otherProfile['photo_url'];
 
-                      final lastMsg = (convo['messages'] != null &&
-                              convo['messages'].isNotEmpty)
-                          ? convo['messages'].last['content']
+                      final allMessages = (convo['messages'] as List<dynamic>? ?? []);
+                      allMessages.sort((a, b) =>
+                          DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at']))
+                      );
+                      final lastMsg = allMessages.isNotEmpty
+                          ? allMessages.last['content']
                           : "Fără mesaje încă";
+
+                      print("💬 Last message: $lastMsg");
 
                       return Container(
                         margin:

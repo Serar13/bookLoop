@@ -1,4 +1,3 @@
-import 'package:book_loop/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../services/onboarding_service.dart';
@@ -23,8 +22,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2), // Animation duration
-    )..repeat(reverse: true); // Loop animation back and forth
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
 
     _animation = Tween<double>(begin: 0, end: 20).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -33,110 +32,95 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   void dispose() {
-    _controller.dispose(); // Clean up the animation controller
-    _pageController.dispose(); // Clean up the page controller
+    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          PageView(
-            controller: _pageController,
-            physics: const ClampingScrollPhysics(),
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            children: [
-              _buildPage(
-                context,
-                imagePath: 'assets/Carte.png',
-                title: "Change books and make friends",
-              ),
-              _buildPage(
-                context,
-                imagePath: 'assets/Events-removebg.png',
-                title: "Do not miss the events with the community",
-              ),
-              _buildPage(
-                context,
-                imagePath: 'assets/Key-removebg.png',
-                title: "Unlock Endless Possibilities!",
-              ),
-              _buildPage(
-                context,
-                imagePath: 'assets/Profile-removebg.png',
-                title: "Create your profile and start your journey",
-              ),
-            ],
-          ),
-          // Fixed Skip or Start Button
-          Positioned(
-            top: 50,
-            right: 20,
-            child: GestureDetector(
-              onTap: () async {
-                if (_currentIndex == 3) {
-                  await OnboardingService.setCompleted();
-                  GoRouter.of(context).push(singinPath);
-                } else {
-                  _pageController.animateToPage(
-                    3, // Index of the last slide
-                    duration: const Duration(milliseconds: 500), // Animation duration
-                    curve: Curves.easeInOut, // Animation curve
-                  );
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(
-                  _currentIndex == 3 ? "Start" : "Skip", // Change text based on page index
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              )
-            ),
-          ),
-        ],
-      ),
-      bottomSheet: _buildBottomNavigation(),
-    );
-  }
-
-  // Method to build each onboarding page
-  Widget _buildPage(BuildContext context, {required String imagePath, required String title}) {
     return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.amberAccent,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // Align content in the center
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFFDFCFB), Color(0xFFE2D1C3)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
           children: [
-            // Animated Image
-            AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, -_animation.value), // Up and down movement
-                  child: child,
-                );
+            PageView(
+              controller: _pageController,
+              physics: const ClampingScrollPhysics(),
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
               },
-              child: Image.asset(
-                imagePath,
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
+              children: [
+                _buildPage(
+                  imagePath: 'assets/Carte.png',
+                  title: "Schimbă cărți \nși leagă prietenii",
+                ),
+                _buildPage(
+                  imagePath: 'assets/Events-removebg.png',
+                  title: "Participă la evenimente \ncu comunitatea",
+                ),
+                _buildPage(
+                  imagePath: 'assets/Key-removebg.png',
+                  title: "Descoperă noi oportunități",
+                ),
+                _buildPage(
+                  imagePath: 'assets/Profile-removebg.png',
+                  title: "Creează profilul tău \nși pornește aventura",
+                ),
+              ],
+            ),
+
+            Positioned(
+              top: 50,
+              right: 20,
+              child: GestureDetector(
+                onTap: () async {
+                  if (_currentIndex == 3) {
+                    await OnboardingService.setCompleted();
+                    GoRouter.of(context).go('/signIn');
+                  } else {
+                    _pageController.animateToPage(
+                      3,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8C6E54).withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _currentIndex == 3 ? "Start" : "Skip",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: _buildBottomNavigation(),
+                ),
+              ),
             ),
           ],
         ),
@@ -144,36 +128,110 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
-  // Bottom navigation (dots and Next/Finish button)
-  Widget _buildBottomNavigation() {
+  Widget _buildPage({required String imagePath, required String title}) {
     return Container(
-      height: 80,
-      color: Colors.amberAccent,
-      child: Row(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              4,
-                  (index) => _buildBubble(index == _currentIndex),
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(0, -_animation.value),
+                child: child,
+              );
+            },
+            child: Image.asset(
+              imagePath,
+              width: 220,
+              height: 220,
             ),
-          )
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              color: Color(0xFF3E2F25),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // Method to build a single bubble
-  Widget _buildBubble(bool isActive) {
+  Widget _buildBottomNavigation() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+
+          /// BUBBLES
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              4,
+              (index) => _buildBubble(index == _currentIndex),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          /// ROUND ARROW BUTTON
+          GestureDetector(
+            onTap: () {
+              if (_currentIndex < 3) {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+              } else {
+                OnboardingService.setCompleted();
+                GoRouter.of(context).go('/signIn');
+              }
+            },
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFF8C6E54),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBubble(bool active) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      width: isActive ? 16 : 8, // Active bubble grows larger
-      height: isActive ? 16 : 8,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      width: active ? 16 : 8,
+      height: active ? 16 : 8,
       decoration: BoxDecoration(
+        color: active ? const Color(0xFF8C6E54) : Colors.grey,
         shape: BoxShape.circle,
-        color: isActive ? Colors.black : Colors.grey,
       ),
     );
   }

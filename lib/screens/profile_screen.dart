@@ -368,6 +368,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontFamily: 'Merriweather',
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events, color: Color(0xFF3E2F25)),
+            onPressed: () => context.push('/badges'),
+          )
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(

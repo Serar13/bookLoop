@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/onboarding_service.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -40,6 +42,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _handleNavigation() async {
+    final hasCompletedOnboarding = await OnboardingService.isCompleted();
+
+    if (!mounted) return;
+
+    if (!hasCompletedOnboarding) {
+      GoRouter.of(context).go(onBordingPath);
+      return;
+    }
+
     final supabase = Supabase.instance.client;
     final currentUser = supabase.auth.currentUser;
 

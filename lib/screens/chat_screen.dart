@@ -71,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 return ListView.builder(
                   padding: const EdgeInsets.all(12),
                   itemCount: messages.length,
+                  reverse: true,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
                     final isMine = msg['sender_id'] == userId;
